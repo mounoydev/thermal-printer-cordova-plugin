@@ -76,8 +76,31 @@ public class ThermalPrinterCordovaPlugin extends CordovaPlugin {
         data.put("bytes", decodedString);
         this.bytesToHexadecimalString(callbackContext, data);
     }
-
     private void bytesToHexadecimalString(CallbackContext callbackContext, JSONObject data) throws JSONException {
+        EscPosPrinter printer = this.getPrinter(callbackContext, data);
+        try {
+            byte[] bytes = (byte[]) data.get("bytes");
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+
+            int width = decodedByte.getWidth(), height = decodedByte.getHeight(); // #Edit
+            StringBuilder textToPrint = new StringBuilder();
+            for(int y = 0; y < height; y += 256) {
+                Bitmap bitmap = Bitmap.createBitmap(decodedByte, 0, y, width, (y + 256 >= height) ? height - y : 256);
+                textToPrint.append("[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, bitmap) + "</img>\n");
+            }
+          //  textToPrint.append("[C]Printed!!!\n");
+           // printer.printFormattedTextAndCut(textToPrint.toString());
+            callbackContext.success(textToPrint.toString());
+            
+           // callbackContext.success(PrinterTextParserImg.bitmapToHexadecimalString(printer, decodedByte));
+        } catch (Exception e) {
+            callbackContext.error(new JSONObject(new HashMap<String, Object>() {{
+                put("error", e.getMessage());
+            }}));
+        }
+    }
+    private void bytesToHexadecimalString_2(CallbackContext callbackContext, JSONObject data) throws JSONException {
         EscPosPrinter printer = this.getPrinter(callbackContext, data);
         try {
             byte[] bytes = (byte[]) data.get("bytes");
